@@ -26,12 +26,12 @@ class VAE3dmp(BaseVAE):
         
         ##### set default input size if not given. #####
         if input_size is None:
-            self.input_size = [depth_dim,64,64]
+            self.input_size = [depth_dim,128,128]
 
         ##### set default hidden dimensions if not given. #####
         if hidden_dims is None:
             hidden_dims = [32, 64, 128, 256]
-            self.hidden_dims = hidden_dims.copy()
+        self.hidden_dims = hidden_dims.copy()
 
         ##### set default kernels size if not given. #####
         if kernels is None:
@@ -72,8 +72,7 @@ class VAE3dmp(BaseVAE):
 
         self.fc_mu = nn.Linear(hidden_dims[-1]*4*4, latent_dim)
         self.fc_var = nn.Linear(hidden_dims[-1]*4*4, latent_dim)
-
-
+        
         # Build Decoder
         self.decoder_input = nn.Linear(latent_dim, hidden_dims[-1]*4*4*self.depth_dim//(2**len(self.hidden_dims)))
         self.upsampler = nn.Upsample(scale_factor=2, mode='nearest')

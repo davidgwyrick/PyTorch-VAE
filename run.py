@@ -14,7 +14,7 @@ parser.add_argument('--config',  '-c',
                     dest="filename",
                     metavar='FILE',
                     help =  'path to the config file',
-                    default='configs/WC_vae3dmp.yaml')
+                    default='configs/WF_vae3dmp.yaml')
 
 args = parser.parse_args()
 with open(args.filename, 'r') as file:
@@ -38,6 +38,7 @@ cudnn.deterministic = True
 cudnn.benchmark = False
 
 model = vae_models[config['model_params']['name']](**config['model_params'])
+# import pdb; pdb.set_trace()
 experiment = VAEXperiment(model,
                           config['exp_params'])
 

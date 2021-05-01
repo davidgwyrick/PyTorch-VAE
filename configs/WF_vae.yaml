@@ -1,0 +1,25 @@
+model_params:
+  name: 'VanillaVAE'
+  in_channels: 1
+  latent_dim: 5
+
+exp_params:
+  dataset: Widefield
+  data_path: "/mnt/data0/Niell/Widefield/G62FFF7TT"
+  h5file: "aligned_bpf_dfof_50x50_G62FFF7TT.h5"
+  img_size: 50
+  imgH_size: 50
+  imgW_size: 50
+  batch_size: 100 # Better to have a square number
+  LR: 0.005
+  weight_decay: 0.0
+  scheduler_gamma: 0.95
+
+trainer_params:
+  gpus: 1
+  max_epochs: 30
+
+logging_params:
+  save_dir: "/mnt/data0/Niell/Widefield/G62FFF7TT/VAE_outputs"
+  name: "VanillaVAE"
+  manual_seed: 1265

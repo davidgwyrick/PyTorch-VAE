@@ -1,6 +1,7 @@
 import glob, os, sys
 import pandas as pd
 import numpy as np
+import h5py
 
 from PIL import Image
 from functools import partial
@@ -87,4 +88,104 @@ class WC3dDataset(Dataset):
                 img = self.transform(img)
             sample.append(img)
         sample = torch.cat(sample,dim=0).unsqueeze(0) # To put into B x C x D x H x W format
+        return sample
+
+class WFDataset(Dataset):
+    def __init__(self, h5_file, root_dir,xval='train',transform=None):
+
+        #Read in h5 file
+        with h5py.File(os.path.join(root_dir,h5_file),'r') as h5file:
+            #Save calculated AR matrices and transition matrix
+            dfof_list = list(h5file['dfof_list'])
+        
+        #Take the first 8400 frames (14minutes) of each session 
+        if xval == 'train':
+            train_list = [data[:,:,:8400] for data in dfof_list]
+            data = np.concatenate(train_list)
+        elif xval == 'test':
+            test_list = [data[:,:,8400:] for data in dfof_list]
+            data = np.concatenate(test_list)
+        else:
+            data = np.concatenate(dfof_list)
+            
+        data = np.transpose(data,[-1,0,1])
+        img_size = data.shape[-1]
+        self.data = data.reshape((-1,1,img_size,img_size))
+        self.filename = h5_file
+        self.root_dir = root_dir
+        self.transform = transform
+        
+    def __len__(self):
+        return(self.data.shape[0])
+    
+    def __getitem__(self,idx):
+        
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        sample = torch.Tensor(self.data[idx])   
+        if self.transform:
+            sample = self.transform(sample)
+            
+        return sample
+    
+    
+class WF3dDataset(Dataset):
+    def __init__(self, h5_file, root_dir, N_fm,xval='train',transform=None):
+
+        #Read in h5 file
+        with h5py.File(os.path.join(root_dir,h5_file),'r') as h5file:
+            #Save calculated AR matrices and transition matrix
+            dfof_list = list(h5file['dfof_list'])
+        
+        #Take the first 8400 frames (14minutes) of each session 
+        if xval == 'train':
+            train_list = [data[:,:,:8640] for data in dfof_list]
+            data = np.concatenate(train_list,axis=-1)
+        elif xval == 'test':
+            test_list = [data[:,:,8640:] for data in dfof_list]
+            data = np.concatenate(test_list,axis=-1)
+        else:
+            data = np.concatenate(dfof_list,axis=-1)
+            
+        data = np.transpose(data,[-1,0,1])
+        img_size = data.shape[-1]
+        data = data.reshape((-1,1,img_size,img_size))
+        self.data = data
+        self.filename = h5_file
+        self.root_dir = root_dir
+        self.transform = transform
+        self.N_fm = N_fm
+        
+    def __len__(self):
+        return(self.data.shape[0])
+    
+    def __getitem__(self,idx):
+        
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+            
+        if idx >= self.N_fm:
+            sample_list = []
+            for n in range(self.N_fm):
+                img = torch.Tensor(self.data[idx-n]) 
+                if self.transform:
+                    img = self.transform(img)
+                sample_list.append(img)
+            sample = torch.cat(sample_list,dim=0).unsqueeze(0) # To put into B x C x D x H x W format
+        elif idx < self.N_fm:
+            #Just copy the first frame (N_fm - idx) number of times
+            sample_list = []
+            for ii in range(self.N_fm-idx):
+                img = torch.Tensor(self.data[0]) 
+                if self.transform:
+                    img = self.transform(img)
+                sample_list.append(img)
+            for ii in range(idx):
+                img = torch.Tensor(self.data[ii]) 
+                if self.transform:
+                    img = self.transform(img)
+                sample_list.append(img)
+            sample = torch.cat(sample_list,dim=0).unsqueeze(0)
+        
         return sample

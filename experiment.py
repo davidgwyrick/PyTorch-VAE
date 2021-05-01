@@ -10,6 +10,7 @@ import torchvision.utils as vutils
 from torchvision.datasets import CelebA
 from torch.utils.data import DataLoader
 from datasets import WCDataset, WCShotgunDataset, WC3dDataset
+from datasets import WFDataset, WF3dDataset
 
 class VAEXperiment(pl.LightningModule):
 
@@ -148,7 +149,7 @@ class VAEXperiment(pl.LightningModule):
 
         if self.params['dataset'] == 'celeba':
             dataset = CelebA(root = self.params['data_path'],
-                             split = "train",
+                            split = "train",
                              transform=transform,
                              download=True)
         elif self.params['dataset'] == 'WorldCam':
@@ -165,6 +166,15 @@ class VAEXperiment(pl.LightningModule):
                                 N_fm = self.params['N_fm'],
                                 csv_file = self.params['csv_path_train'],
                                 transform=transform)
+            
+        elif self.params['dataset'] == 'Widefield':
+            dataset = WFDataset(self.params['h5file'],self.params['data_path'],
+                                xval='train',transform=transform)
+            
+        elif self.params['dataset'] == 'Widefield3D':
+            dataset = WF3dDataset(self.params['h5file'],self.params['data_path'],self.params['N_fm'],
+                                  xval='train',transform=transform)
+            
         else:
             raise ValueError('Undefined dataset type')
 
@@ -173,10 +183,10 @@ class VAEXperiment(pl.LightningModule):
                           batch_size= self.params['batch_size'],
                           shuffle = True,
                         #   drop_last=True,
-                          num_workers=32,
-                          persistent_workers=True,
-                          pin_memory=True,
-                          prefetch_factor=10)
+                          #num_workers=24,
+                          #persistent_workers=True,
+                          pin_memory=False)
+                          #prefetch_factor=3)
 
     @data_loader
     def val_dataloader(self):
@@ -220,6 +230,26 @@ class VAEXperiment(pl.LightningModule):
                                                 drop_last=True,
                                                 num_workers=32)
             self.num_val_imgs = len(self.sample_dataloader)
+            
+        elif self.params['dataset'] == 'Widefield':
+            dataset = WFDataset(self.params['h5file'],self.params['data_path'],xval='test',transform=transform)
+            
+            self.sample_dataloader = DataLoader(dataset,
+                                                batch_size=self.params['batch_size'],
+                                                shuffle = False,
+                                                drop_last=True,
+                                                num_workers=24)
+            self.num_val_imgs = len(self.sample_dataloader)
+            
+        elif self.params['dataset'] == 'Widefield3D':
+            dataset = WF3dDataset(self.params['h5file'],self.params['data_path'],self.params['N_fm'],xval='test',transform=transform)
+            
+            self.sample_dataloader = DataLoader(dataset,
+                                                batch_size=self.params['batch_size'],
+                                                shuffle = False,
+                                                drop_last=True)
+                                                #num_workers=24)
+            self.num_val_imgs = len(self.sample_dataloader)
         else:
             raise ValueError('Undefined dataset type')
 
@@ -261,6 +291,10 @@ class VAEXperiment(pl.LightningModule):
                                 transforms.Resize((self.params['imgH_size'],self.params['imgW_size'])),
                                 transforms.ToTensor(),
                                 SetRange])
+        elif (self.params['dataset'] == 'Widefield') | (self.params['dataset'] == 'Widefield3D'):
+            print('Pad with 0s')
+            transform = transforms.Pad(14,fill=1E-6)
+            
         else:
             raise ValueError('Undefined dataset type')
         return transform
