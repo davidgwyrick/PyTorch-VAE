@@ -6,6 +6,7 @@ model_params:
   xystrides: [2,2,2,2,2]
   tstrides: [2,2,2,2,1]
   kernels: [5,5,5,5,5]
+  mpkernels: [2,2,2,2,2]
   input_size: [16,128,128]
   hidden_dims: [16, 32, 64, 128, 256]
 

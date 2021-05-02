@@ -73,6 +73,8 @@ class VAEXperiment(pl.LightningModule):
             self.logger.experiment.add_image('recons',vutils.make_grid(recons.data[:100,:1],nrow=10,normalize=True),self.current_epoch)
         elif self.params['dataset'] == 'WorldCam3D':
             self.logger.experiment.add_image('recons',vutils.make_grid(recons.data[:100,:1,0],nrow=10,normalize=True),self.current_epoch)
+        elif self.params['dataset'] == 'Widefield3D':
+            self.logger.experiment.add_image('recons',vutils.make_grid(recons.data[:100,:1,0],nrow=10,normalize=True),self.current_epoch)
         else:
             self.logger.experiment.add_image('recons',vutils.make_grid(recons.data[:100],nrow=10,normalize=True),self.current_epoch)
         # vutils.save_image(recons.data[:100],
@@ -92,6 +94,8 @@ class VAEXperiment(pl.LightningModule):
             if self.params['dataset'] == 'WorldCamShotgun':
                 self.logger.experiment.add_image('samples',vutils.make_grid(samples[:,:1],nrow=10,normalize=True),self.current_epoch)
             elif self.params['dataset'] == 'WorldCam3D':
+                self.logger.experiment.add_image('samples',vutils.make_grid(samples[:,:1,0],nrow=10,normalize=True),self.current_epoch)
+            elif self.params['dataset'] == 'Widefield3D':
                 self.logger.experiment.add_image('samples',vutils.make_grid(samples[:,:1,0],nrow=10,normalize=True),self.current_epoch)
             else:
                 self.logger.experiment.add_image('samples',vutils.make_grid(samples,nrow=10,normalize=True),self.current_epoch)
@@ -183,10 +187,10 @@ class VAEXperiment(pl.LightningModule):
                           batch_size= self.params['batch_size'],
                           shuffle = True,
                         #   drop_last=True,
-                          #num_workers=24,
+                          num_workers=24,
                           #persistent_workers=True,
-                          pin_memory=False)
-                          #prefetch_factor=3)
+                          pin_memory=False,
+                          prefetch_factor=3)
 
     @data_loader
     def val_dataloader(self):
@@ -247,8 +251,8 @@ class VAEXperiment(pl.LightningModule):
             self.sample_dataloader = DataLoader(dataset,
                                                 batch_size=self.params['batch_size'],
                                                 shuffle = False,
-                                                drop_last=True)
-                                                #num_workers=24)
+                                                drop_last=True,
+                                                num_workers=24)
             self.num_val_imgs = len(self.sample_dataloader)
         else:
             raise ValueError('Undefined dataset type')

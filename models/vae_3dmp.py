@@ -13,6 +13,7 @@ class VAE3dmp(BaseVAE):
                  latent_dim: int,
                  depth_dim: int,
                  kernels: List = None,
+                 mpkernels: List = None,
                  xystrides: List = None,
                  tstrides: List = None,
                  input_size: List = None,
@@ -23,7 +24,7 @@ class VAE3dmp(BaseVAE):
         self.latent_dim = latent_dim
         self.in_channels = in_channels
         self.depth_dim = depth_dim
-        
+
         ##### set default input size if not given. #####
         if input_size is None:
             self.input_size = [depth_dim,128,128]
@@ -39,6 +40,12 @@ class VAE3dmp(BaseVAE):
         else:
             self.kernels = kernels
 
+        ##### set default mpkernels size if not given. #####
+        if mpkernels is None:
+            self.mpkernels = [2 for _ in range(len(hidden_dims))]
+        else:
+            self.mpkernels = mpkernels
+            
         ##### set default xystride size if not given. #####
         if xystrides is None:
             self.xystrides = [2 for _ in range(len(hidden_dims))]
@@ -62,7 +69,7 @@ class VAE3dmp(BaseVAE):
             self.encoder.add_module(str('batchnorm%i' % layer_n), 
                                     nn.BatchNorm3d(h_dim))
             self.encoder.add_module(str('maxpool%i' % layer_n), 
-                                        nn.MaxPool3d(kernel_size=2,#self.kernels[layer_n], 
+                                        nn.MaxPool3d(kernel_size=self.mpkernels[layer_n], 
                                         stride=(self.tstrides[layer_n], self.xystrides[layer_n], self.xystrides[layer_n]), 
                                         padding=0,return_indices=True))
             self.encoder.add_module(str('relu%i' % layer_n), 
