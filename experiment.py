@@ -177,7 +177,7 @@ class VAEXperiment(pl.LightningModule):
             
         elif self.params['dataset'] == 'Widefield3D':
             dataset = WF3dDataset(self.params['h5file'],self.params['data_path'],self.params['N_fm'],
-                                  xval='train',transform=transform)
+                                  xval='all',transform=transform)
             
         else:
             raise ValueError('Undefined dataset type')
@@ -296,8 +296,11 @@ class VAEXperiment(pl.LightningModule):
                                 transforms.ToTensor(),
                                 SetRange])
         elif (self.params['dataset'] == 'Widefield') | (self.params['dataset'] == 'Widefield3D'):
-            print('Pad with 0s')
-            transform = transforms.Pad(14,fill=1E-6)
+            print('Pad with 1E-6')
+            if self.params['img_size'] == 128:
+                transform = transforms.Pad(14,fill=1E-6)
+            elif self.params['img_size'] == 64:
+                transform = transforms.Pad(7,fill=1E-6)
             
         else:
             raise ValueError('Undefined dataset type')

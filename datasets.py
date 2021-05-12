@@ -143,7 +143,7 @@ class WF3dDataset(Dataset):
             train_list = [data[:,:,:8640] for data in dfof_list]
             data = np.concatenate(train_list,axis=-1)
         elif xval == 'test':
-            test_list = [data[:,:,8640:] for data in dfof_list]
+            test_list = [data[:,:,9344:] for data in dfof_list]
             data = np.concatenate(test_list,axis=-1)
         else:
             data = np.concatenate(dfof_list,axis=-1)

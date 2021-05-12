@@ -36,7 +36,7 @@ class VAE3dmp(BaseVAE):
         ##### set default hidden dimensions if not given. #####
         if hidden_dims is None:
             hidden_dims = [16, 32, 64, 128, 256]
-            self.hidden_dims = hidden_dims.copy()
+        self.hidden_dims = hidden_dims.copy()
 
         ##### set default kernels size if not given. #####
         if kernels is None:
