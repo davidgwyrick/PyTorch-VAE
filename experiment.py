@@ -232,7 +232,7 @@ class VAEXperiment(pl.LightningModule):
                                                 batch_size=self.params['batch_size'],
                                                 shuffle = False,
                                                 drop_last=True,
-                                                num_workers=32)
+                                                num_workers=16)
             self.num_val_imgs = len(self.sample_dataloader)
             
         elif self.params['dataset'] == 'Widefield':
